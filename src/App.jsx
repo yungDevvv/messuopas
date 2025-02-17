@@ -9,8 +9,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/johdanto" replace />} />
-          <Route path="/johdanto" element={<div>Johdanto</div>} />
+          <Route index element={<Navigate to="/" replace />} />
           <Route path="/messujen-suunnittelu/*" element={<div>Messujen Suunnittelu</div>} />
           {/* Myynnillinen asiakashankinta routes */}
           <Route path="/myynnillinen-asiakashankinta/asiakashankinnan-suunnittelu" element={<AsiakashankinnanSuunnittelu />} />

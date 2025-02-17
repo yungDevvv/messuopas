@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import ToolSidebar from './ToolSidebar';
@@ -18,10 +18,10 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { useModal } from '@/hooks/use-modal';
-import { useState } from 'react';
 
 const Layout = () => {
     const [select, setSelect] = useState('');
+    const [isToolsOpen, setIsToolsOpen] = useState(false);
     const activeTab = useToolStore((state) => state.activeTab);
     const location = useLocation();
     const setActiveTab = useToolStore(state => state.setActiveTab);
@@ -35,6 +35,66 @@ const Layout = () => {
 
     return (
         <div className="w-full min-h-screen flex justify-center bg-white relative">
+            {/* Fixed Tools Button */}
+            <div className="fixed right-2 top-1/2 max-md:right-8 max-md:top-8 -translate-y-1/2 z-50">
+                <div className="relative">
+                    <Button
+                        onClick={() => setIsToolsOpen(!isToolsOpen)}
+                        className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white rounded-full w-12 h-12 max-md:w-10 max-md:h-10 flex items-center justify-center shadow-lg transition-all duration-300 md:translate-x-0 translate-x-6 relative"
+                    >
+                        <ChevronLeft
+                            className={cn(
+                                'w-8 h-8 transition-transform duration-300 absolute md:static md:translate-x-0',
+                                isToolsOpen ? 'rotate-180' : ''
+                            )}
+                        />
+                    </Button>
+
+                    <div className={cn(
+                        "absolute right-full max-md:right-[70%]  top-0  max-md:mr-0 mr-2 bg-white rounded-lg shadow-lg border p-2 w-64",
+                        "transform transition-all duration-300 origin-right",
+                        isToolsOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"
+                    )}>
+                        <Select value={select} onValueChange={setSelect}>
+                            <SelectTrigger className="font-normal text-base mb-2">
+                                <SelectValue className="text-base" placeholder="Valitse tapahtuma" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="1" className="text-base p-3">Helsingin torin messut</SelectItem>
+                                <SelectItem value="2" className="text-base p-3">Järvenpän messut</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <div className="space-y-1">
+                            {[
+                                { id: 'johdanto', icon: BookText, label: 'Opas' },
+                                { id: 'notes', icon: NotebookPen, label: 'Muistiinpanot' },
+                                { id: 'documents', icon: FileUp, label: 'Liitteet' },
+                                { id: 'history', icon: FileClock, label: 'Historia' },
+                                { id: 'todo', icon: NotebookPen, label: 'Tehtävä lista' }
+                            ].map((tool) => (
+                                <button
+                                    key={tool.id}
+                                    onClick={() => {
+                                        setActiveTab(tool.id);
+                                        setIsToolsOpen(false);
+                                    }}
+                                    className={cn(
+                                        "w-full flex items-center gap-2 p-2 rounded-md transition-colors",
+                                        activeTab === tool.id
+                                            ? "bg-green-50 text-green-500"
+                                            : "hover:bg-gray-50 text-gray-700"
+                                    )}
+                                >
+                                    <tool.icon className="w-4 h-4" />
+                                    <span>{tool.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black/20 z-40 lg:hidden"
@@ -55,149 +115,26 @@ const Layout = () => {
                     <Sidebar />
                 </div>
 
-                <main className="flex-1 overflow-y-auto px-6">
+                <main className="flex-1 overflow-y-auto px-6 relative">
                     <div className='flex items-center gap-5 max-md:py-5 max-md:border-b mb-5'>
-                        <h1 className="text-xl font-medium text-gray-900 flex items-center gap-2 md:hidden">
+                        {/* <h1 className="text-xl font-medium text-gray-900 flex items-center gap-2 md:hidden">
                             <BookText />
                             Messuopas
-                        </h1>
+                        </h1> */}
                         <button
                             onClick={toggle}
-                            className="relative max-md:z-50 p-0 !outline-none border-none !bg-white hover:bg-gray-50 lg:hidden max-md:ml-auto"
+                            className="relative max-md:z-50 p-0 !outline-none border-none !bg-white hover:bg-gray-50 lg:hidden"
                         >
                             <Menu className="w-6 h-6 text-black/60" />
                         </button>
                         <Separator orientation="vertical" className="max-md:hidden lg:hidden h-7 bg-black/10" />
                         <Breadcrumbs />
                     </div>
-                    <div className='flex items-center gap-2 mb-5'>
-                        <Select value={select} onValueChange={setSelect}>
-                            <SelectTrigger className="font-normal text-base">
-                                <SelectValue className="text-base" placeholder="Valitse tapahtuma" />
-                            </SelectTrigger>
-                            <SelectContent >
-                                <SelectItem value="1" className="text-base p-3">Helsingin torin messut</SelectItem>
-                                <SelectItem value="2" className="text-base p-3">Järvenpän messut</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    {/* <div className='flex items-center gap-2 mb-5'>
                         <Button onClick={() => onOpen("create-event-modal")} className="bg-green-400 hover:bg-green-500 !text-white border-0">
                             <Plus className='w-4 h-4' />
                         </Button>
-                    </div>
-                    {select && (
-                        <>
-                            <div className="space-y-6 my-5">
-                                <div className="grid grid-cols-1 md:grid-cols-2 max-md:gap-2 gap-4">
-                                    <div
-                                        className={cn(
-                                            "group select-none flex gap-2 p-4 border rounded-lg transition-colors cursor-pointer",
-                                            activeTab === 'johdanto'
-                                                ? "border-green-500"
-                                                : "border-gray-200 hover:border-green-500"
-                                        )}
-                                        onClick={() => setActiveTab('johdanto')}
-                                    >
-                                        <BookText className={cn(
-                                            'w-5 h-5 transition-colors',
-                                            activeTab === 'johdanto' ? 'text-green-500' : 'text-black/70'
-                                        )} />
-                                        <div>
-                                            <h3 className={cn(
-                                                "text-lg font-medium mb-2",
-                                                activeTab === 'johdanto' ? 'text-green-500' : 'text-gray-800'
-                                            )}>Opas</h3>
-                                            <p className="text-gray-600">Opas</p>
-                                        </div>
-                                    </div>
-                                    <div
-                                        className={cn(
-                                            "group select-none flex gap-2 p-4 border rounded-lg transition-colors cursor-pointer",
-                                            activeTab === 'notes'
-                                                ? "border-green-500"
-                                                : "border-gray-200 hover:border-green-500"
-                                        )}
-                                        onClick={() => setActiveTab('notes')}
-                                    >
-                                        <NotebookPen className={cn(
-                                            'w-5 h-5 transition-colors',
-                                            activeTab === 'notes' ? 'text-green-500' : 'text-black/70'
-                                        )} />
-                                        <div>
-                                            <h3 className={cn(
-                                                "text-lg font-medium mb-2",
-                                                activeTab === 'notes' ? 'text-green-500' : 'text-gray-800'
-                                            )}>Muistiinpanot</h3>
-                                            <p className="text-gray-600">Lisää ja hallinnoi muistiinpanoja projektiin liittyen</p>
-                                        </div>
-                                    </div>
-                                    <div
-                                        className={cn(
-                                            "group select-none flex gap-2 p-4 border rounded-lg transition-colors cursor-pointer",
-                                            activeTab === 'documents'
-                                                ? "border-green-500"
-                                                : "border-gray-200 hover:border-green-500"
-                                        )}
-                                        onClick={() => setActiveTab('documents')}
-                                    >
-                                        <FileUp className={cn(
-                                            'w-5 h-5 transition-colors',
-                                            activeTab === 'documents' ? 'text-green-500' : 'text-black/70'
-                                        )} />
-                                        <div>
-                                            <h3 className={cn(
-                                                "text-lg font-medium mb-2",
-                                                activeTab === 'documents' ? 'text-green-500' : 'text-gray-800'
-                                            )}>Liitteet</h3>
-                                            <p className="text-gray-600">Lisää ja hallinnoi muistiinpanoja projektiin liittyen</p>
-                                        </div>
-                                    </div>
-                                    <div
-                                        className={cn(
-                                            "group select-none flex gap-2 p-4 border rounded-lg transition-colors cursor-pointer",
-                                            activeTab === 'history'
-                                                ? "border-green-500"
-                                                : "border-gray-200 hover:border-green-500"
-                                        )}
-                                        onClick={() => setActiveTab('history')}
-                                    >
-                                        <FileClock className={cn(
-                                            'w-5 h-5 transition-colors',
-                                            activeTab === 'history' ? 'text-green-500' : 'text-black/70'
-                                        )} />
-                                        <div>
-                                            <h3 className={cn(
-                                                "text-lg font-medium mb-2",
-                                                activeTab === 'history' ? 'text-green-500' : 'text-gray-800'
-                                            )}>Historia</h3>
-                                            <p className="text-gray-600">Lisää ja hallinnoi muistiinpanoja projektiin liittyen</p>
-                                        </div>
-                                    </div>
-                                    <div
-                                        className={cn(
-                                            "group select-none flex gap-2 p-4 border rounded-lg transition-colors cursor-pointer",
-                                            activeTab === 'todo'
-                                                ? "border-green-500"
-                                                : "border-gray-200 hover:border-green-500"
-                                        )}
-                                        onClick={() => setActiveTab('todo')}
-                                    >
-                                        <FileClock className={cn(
-                                            'w-5 h-5 transition-colors',
-                                            activeTab === 'todo' ? 'text-green-500' : 'text-black/70'
-                                        )} />
-                                        <div>
-                                            <h3 className={cn(
-                                                "text-lg font-medium mb-2",
-                                                activeTab === 'todo' ? 'text-green-500' : 'text-gray-800'
-                                            )}>Tehtävä lista</h3>
-                                            <p className="text-gray-600">Lisää ja hallinnoi tehtäviä projektiin liittyen</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <Separator className="mb-6" />
-                        </>
-                    )}
+                    </div> */}
                     <ContentView />
                 </main>
 

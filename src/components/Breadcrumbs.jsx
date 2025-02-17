@@ -20,7 +20,7 @@ const Breadcrumbs = () => {
   const filteredPathnames = pathnames.filter(name => name !== 'myynnillinen-asiakashankinta');
 
   return (
-    <nav className="flex items-center space-x-2 text-sm text-gray-500 py-6 max-md:hidden">
+    <nav className="flex items-center space-x-2 text-sm text-gray-500 py-6 max-md:py-0 max-sm:hidden">
       <Link
         to="/"
         className="hover:text-gray-700 transition-colors"
